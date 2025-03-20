@@ -204,9 +204,11 @@ export function getKeyInfo(
   parsedNotebookFrontmatter: { [key: string]: any } | undefined,
 ): IExecKeyInfo {
   try {
-    if (!cellAnnotations.background && isDaggerCall(runningCell.getText())) {
-      return { key: 'daggerCall', resource: 'DaggerObject' }
-    }
+    // todo(sebastian): reconsider integration with Dagger CLI
+    // Dagger CLI's behavior has changed and it no longer stdout's the object
+    // if (!cellAnnotations.background && isDaggerCall(runningCell.getText())) {
+    //   return { key: 'daggerCall', resource: 'DaggerObject' }
+    // }
 
     const frontmatterShell = parsedNotebookFrontmatter?.shell ?? ''
     if (!cellAnnotations.background && isDaggerShell(frontmatterShell)) {
