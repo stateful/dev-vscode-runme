@@ -8,27 +8,59 @@ terminalRows: 20
 curl -s "https://framerusercontent.com/images/tpJEZ337KKxXU4q1SSUXDx4FG4.png?scale-down-to=512"
 ```
 
-Showcase the notebook experience to **author, debug, express, and run** Dagger pipelines.
+Showcase the notebook experience to **author, debug, express, and run** Dagger pipelines. Both with Dagger Shell and Call (CLI).
 
-### Let's use a Dagger function to build the Runme binary
+## Build the Runme binary using `dagger shell`
 
-```sh {"id":"01HZSMYF33TFKMEVRX5P64BNTB","interactive":"true","name":"RUNME_BINARY"}
+```sh {"terminalRows":"3"}
+export GOARCH=$(go env GOARCH)
+export GOOS=$(go env GOOS)
+echo "Building Runme binary for $GOOS/$GOARCH"
+```
+
+```sh {"interpreter":"dagger shell","name":"Version"}
+### Exported in runme.dev as Version
+git github.com/stateful/runme | tag v3.12.2 | tree
+```
+
+```sh {"interpreter":"dagger shell","name":"ExportBinary"}
+### Exported in runme.dev as ExportBinary
+github.com/purpleclay/daggerverse/golang $(Version) |
+    build --arch $GOARCH --os $GOOS |
+    file runme |
+    export runme-binary
+```
+
+### Now let the 🐮 cow speak
+
+```sh {"interpreter":"dagger shell"}
+github.com/shykes/dagger/modules/wolfi@6124f75ef216c8c61e9f36bd6feb2a96047a9051 |
+    container --packages=cowsay |
+    with-exec "cowsay","hi from Runme!" |
+    stdout
+```
+
+## In Comparison build the Runme binary using `dagger call`
+
+```sh {"id":"01HZSMYF33TFKMEVRX5P64BNTB","interactive":"true"}
 dagger call \
     -m github.com/purpleclay/daggerverse/golang@v0.3.0 \
-    --src "https://github.com/stateful/runme#main" \
+    --src "https://github.com/stateful/runme#v3.12.2" \
     build \
         --arch $(go env GOARCH) \
         --os $(go env GOOS) \
     file \
-        --path runme
-
+        --path runme \
+        --output runme-binary
 ```
 
-### What does the 🐮 cow say?
+### What does the 🐮 cow say using `dagger call`?
 
-```sh {"id":"01J022WD7Z6TM1QQ075X09BTK4","interactive":"true","name":"COWSAY"}
+```sh {"id":"01J022WD7Z6TM1QQ075X09BTK4","interactive":"true"}
 dagger call \
-    -m github.com/shykes/daggerverse/wolfi@v0.1.4 \
+    -m github.com/shykes/dagger/modules/wolfi@6124f75ef216c8c61e9f36bd6feb2a96047a9051 \
     container \
-        --packages=cowsay
+        --packages=cowsay \
+    with-exec --args="cowsay","hi there!" \
+    stdout
 ```
