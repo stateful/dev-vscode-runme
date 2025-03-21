@@ -14,8 +14,13 @@ Build notebook piplines using the brand new 🔥 dagger shell. New files with th
 
 We need some upstream artifacts. First, compile the Runme kernel binary.
 
-```sh {"id":"01JMMSSHXM7N70W4KCHTX92MHE","name":"KERNEL_BINARY"}
-### Exported in runme.dev as KERNEL_BINARY
+```sh {"interpreter":"zsh","name":"GitHubToken","promptEnv":"never"}
+### Exported in runme.dev as GitHubToken
+export GITHUB_TOKEN=$(gh auth token)
+```
+
+```sh {"id":"01JMMSSHXM7N70W4KCHTX92MHE","name":"KernelBinary"}
+### Exported in runme.dev as KernelBinary
 github.com/purpleclay/daggerverse/golang $(git https://github.com/stateful/runme | tag v3.12.2 | tree) |
   build |
   file runme
@@ -23,22 +28,22 @@ github.com/purpleclay/daggerverse/golang $(git https://github.com/stateful/runme
 
 Then, grab the presetup.sh script to provision the build container.
 
-```sh {"id":"01JMMSSHXM7N70W4KCHY04QVSE","name":"PRESETUP","terminalRows":"14"}
-### Exported in runme.dev as PRESETUP
+```sh {"id":"01JMMSSHXM7N70W4KCHY04QVSE","name":"Presetup","terminalRows":"14"}
+### Exported in runme.dev as Presetup
 git https://github.com/runmedev/vscode-runme |
   head |
   tree |
   file dagger/scripts/presetup.sh
 ```
 
-## Build the Runme VS Code EXTENSION
+## Build the Runme VS Code Extension
 
 Let's tie together above's artifacts via their respective cell names to build the Runme VS Code extension.
 
-```sh {"id":"01JMMSSHXM7N70W4KCJ1N0DVXG","name":"EXTENSION","terminalRows":"26"}
-### Exported in runme.dev as EXTENSION
+```sh {"id":"01JMMSSHXM7N70W4KCJ1N0DVXG","name":"Extension","terminalRows":"26"}
+### Exported in runme.dev as Extension
 github.com/runmedev/vscode-runme |
   with-remote github.com/runmedev/vscode-runme main |
-  with-container $(KERNEL_BINARY) $(PRESETUP) |
+  with-container $(KernelBinary) $(Presetup) |
   build-extension GITHUB_TOKEN
 ```
