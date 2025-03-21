@@ -25,7 +25,8 @@ const baseConfig: Partial<Configuration> = {
     new ForkTsCheckerWebpackPlugin({
       typescript: {
         configFile: path.join(__dirname, 'tsconfig.json'),
-      }
+        memoryLimit: 4096, // Allocate 2x the default memory limit
+      },
     })
   ],
   infrastructureLogging: {
