@@ -19,11 +19,12 @@ const CLI_SECTION_NAME = 'runme.cli'
 const APP_SECTION_NAME = 'runme.app'
 
 export const OpenViewInEditorAction = z.enum(['split', 'toggle'])
-const DEFAULT_WORKSPACE_FILE_ORDER = ['.env.local', '.env']
+const DEFAULT_DIR_ENV = 1
+const DEFAULT_DOCS_URL = 'https://docs.runme.dev'
 const DEFAULT_RUNME_APP_API_URL = 'https://cloud.stateful.com'
 const DEFAULT_RUNME_BASE_DOMAIN = 'cloud.stateful.com'
 const DEFAULT_RUNME_REMOTE_DEV = 'staging.cloud.stateful.com'
-const DEFAULT_DOCS_URL = 'https://docs.runme.dev'
+const DEFAULT_WORKSPACE_FILE_ORDER = ['.env.local', '.env']
 const APP_LOOPBACKS = ['127.0.0.1', 'localhost']
 const APP_LOOPBACK_MAPPING = new Map<string, string>([
   ['api.', ':4000'],
@@ -77,7 +78,7 @@ const configurationSchema = {
   env: {
     workspaceFileOrder: z.array(z.string()).default(DEFAULT_WORKSPACE_FILE_ORDER),
     loadWorkspaceFiles: z.boolean().default(true),
-    dirEnv: z.number().default(3),
+    dirEnv: z.number().default(DEFAULT_DIR_ENV),
   },
   cli: {
     useIntegratedRunme: z.boolean().default(false),
@@ -380,7 +381,7 @@ const getEnvLoadWorkspaceFiles = (): boolean => {
 }
 
 const getEnvDirEnv = (): number => {
-  return getEnvConfigurationValue('dirEnv', 3)
+  return getEnvConfigurationValue('dirEnv', DEFAULT_DIR_ENV)
 }
 
 const getCLIUseIntegratedRunme = (): boolean => {

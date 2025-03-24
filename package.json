@@ -1076,7 +1076,7 @@
           },
           "runme.env.dirEnv": {
             "type": "number",
-            "default": 3,
+            "default": 1,
             "enum": [
               1,
               3
