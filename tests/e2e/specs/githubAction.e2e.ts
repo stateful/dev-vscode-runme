@@ -3,7 +3,7 @@ import { Key } from 'webdriverio'
 import { RunmeNotebook } from '../pageobjects/notebook.page.js'
 import type { NotebookCell } from '../pageobjects/cell.page.js'
 
-const UI_LATENCY_TIMEOUT_SECS = 2 * 60 * 1000
+const UI_LATENCY_TIMEOUT_SECS = 10 * 60_000 // could be queued in GHA for a long time
 
 describe('Runme GitHub Workflow Integration', async () => {
   const notebook = new RunmeNotebook()
