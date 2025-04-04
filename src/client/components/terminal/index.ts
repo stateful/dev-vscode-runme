@@ -346,6 +346,9 @@ export class TerminalView extends LitElement {
   @property({ type: Boolean, converter: (value: string | null) => value !== 'false' })
   buttons: boolean = true
 
+  @property({ type: Boolean, converter: (value: string | null) => value !== 'false' })
+  takeFocus: boolean = true
+
   @property({ type: String })
   fontFamily?: TerminalConfiguration['fontFamily']
 
@@ -629,7 +632,9 @@ export class TerminalView extends LitElement {
     })
 
     this.terminal!.open(terminalContainer)
-    this.terminal!.focus()
+    if (this.takeFocus) {
+      this.terminal!.focus()
+    }
     this.#resizeTerminal()
     this.#updateTerminalTheme()
 
