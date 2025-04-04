@@ -624,9 +624,12 @@ export class TerminalView extends LitElement {
     super.firstUpdated(props)
     const terminalContainer = this.#getTerminalElement() as HTMLElement
 
-    window.addEventListener('focus', () => {
-      this.#onFocusWindow()
-    })
+    if (this.takeFocus) {
+      window.addEventListener('focus', () => {
+        this.#onFocusWindow()
+      })
+    }
+
     window.addEventListener('click', () => {
       this.#onFocusWindow(false)
     })
