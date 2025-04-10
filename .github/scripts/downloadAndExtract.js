@@ -126,12 +126,22 @@ let { values: { downloadUrl, type, binaryDestination, binaryName } } = parseArgs
   options: SCHEMA
 })
 
-try {
-  if (!downloadUrl) {
-    downloadUrl = await getLastStableRelease()
+async function main() {
+  // Skip binary download if DAGGER_BUILD is set
+  if (process.env.DAGGER_BUILD && process.env.DAGGER_BUILD !== 'false' && process.env.DAGGER_BUILD !== '0') {
+    console.log('DAGGER_BUILD environment variable detected, skipping binary download')
+    return
   }
-  await downloadBinary(downloadUrl, type, binaryDestination, binaryName)
-} catch (error) {
-  displayToolHelp()
-  throw error
+
+  try {
+    if (!downloadUrl) {
+      downloadUrl = await getLastStableRelease()
+    }
+    await downloadBinary(downloadUrl, type, binaryDestination, binaryName)
+  } catch (error) {
+    displayToolHelp()
+    throw error
+  }
 }
+
+main()
