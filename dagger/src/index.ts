@@ -5,8 +5,9 @@
  */
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { Platform } from '@dagger.io/dagger'
 import { dag, Container, File, Directory, object, func, Secret } from '@dagger.io/dagger'
-
+import * as os from 'os'
 @object()
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class VscodeRunme {
@@ -46,8 +47,10 @@ export class VscodeRunme {
    */
   @func()
   withContainer(binary: File, presetup: File): VscodeRunme {
+    const arch = os.arch() === 'x64' ? 'amd64' : 'arm64'
+    const containerPlatform = `linux/${arch}` as Platform
     this.container = dag
-      .container()
+      .container({ platform: containerPlatform })
       .from('node:20')
       .withEnvVariable('EXTENSION_NAME', 'runme')
       .withFile('/usr/local/bin/runme', binary)

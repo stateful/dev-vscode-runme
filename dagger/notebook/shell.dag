@@ -14,16 +14,14 @@ Build notebook piplines using the brand new 🔥 dagger shell. New files with th
 
 We need some upstream artifacts. First, compile the Runme kernel binary.
 
-```sh {"interpreter":"zsh","name":"GitHubToken","promptEnv":"never"}
+```sh {"interpreter":"zsh","name":"GitHubToken","promptEnv":"never","terminalRows":"2"}
 ### Exported in runme.dev as GitHubToken
 export GITHUB_TOKEN=$(gh auth token)
 ```
 
 ```sh {"id":"01JMMSSHXM7N70W4KCHTX92MHE","name":"KernelBinary"}
 ### Exported in runme.dev as KernelBinary
-github.com/purpleclay/daggerverse/golang $(git https://github.com/stateful/runme | tag v3.12.2 | tree) |
-  build |
-  file runme
+github.com/runmedev/runme | binary
 ```
 
 Then, grab the presetup.sh script to provision the build container.
