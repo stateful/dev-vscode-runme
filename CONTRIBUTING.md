@@ -103,14 +103,6 @@ $ cp -f "assets/$EXTENSION_BASENAME-logo-sidebar.svg" "assets/logo-sidebar.svg"
 $ NODE_OPTIONS='' npm install --include=dev
 ```
 
-Similarly a Runme WASM binary needs to be downloaded. If an error happened follow the error instructions and re-run the download, via:
-
-```sh {"id":"01HF7VQMH8ESX1EFV4P77NKA3N","interactive":"true","promptEnv":"false"}
-$ export GITHUB_REF_NAME=$(git branch --show-current)
-$ GITHUB_TOKEN=$(gh auth token) npm run download:wasm
-$ npm run prepare-binary -- -f tar
-```
-
 ### Dev against Project
 
 Make sure to install all recommended extensions please:

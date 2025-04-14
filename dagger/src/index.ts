@@ -40,7 +40,7 @@ export class VscodeRunme {
   container(): Container {
     const arch = os.arch() === 'x64' ? 'amd64' : 'arm64'
     const containerPlatform = `linux/${arch}` as Platform
-    const binary = dag.runme().releaseFiles(containerPlatform, { version: 'latest' }).file('runme')
+    const binary = dag.runmeKernel().releaseFiles(containerPlatform, { version: 'latest' }).file('runme')
 
     return dag
       .container({ platform: containerPlatform })

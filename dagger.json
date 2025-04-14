@@ -6,7 +6,7 @@
   },
   "dependencies": [
     {
-      "name": "runme",
+      "name": "RunmeKernel",
       "source": "github.com/runmedev/runme",
       "pin": "280c226fe7bf495c0a5bb6e4d8ec2caea7d5ea51"
     }
