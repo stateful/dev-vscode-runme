@@ -60,9 +60,9 @@ export class VscodeRunme {
    * @returns The packaged VSIX extension file.
    */
   @func()
-  async build(runmeRelease: Directory): Promise<File> {
+  async build(runmeBinary: Directory): Promise<File> {
     return this.container()
-      .withMountedDirectory('/mnt/vscode-runme/bin', runmeRelease)
+      .withMountedDirectory('/mnt/vscode-runme/bin', runmeBinary)
       .withExec('runme run setup build bundle'.split(' '))
       .file('runme-extension.vsix')
   }
