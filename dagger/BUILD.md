@@ -72,13 +72,13 @@ Extension | unit-test | stdout
 
 Then, let's run the end-to-end tests. These require a X server frame buffer which is provided by `xvfb-run` on "native" Linux. These take a good while to finish but mimic extension users closely.
 
-```sh {"name":"E2ETests"}
-### Exported in runme.dev as E2ETests
-Extension | e2e-test | stdout
+```sh {"name":"IntegrationTests"}
+### Exported in runme.dev as IntegrationTests
+Extension | integration-test | stdout
 ```
 
-If they fail, you can re-run them with the `--debug` flag and grab logs and screenshots inside of `tests/e2e/logs`.
+If they fail, you can re-run them with the `--debug` flag and grab logs and screenshots inside of `/tmp/e2e-logs`.
 
 ```sh {"terminalRows":"35"}
-Extension | e2e-test --debug | directory "tests/e2e/logs" | export /tmp/e2e-logs
+Extension | integration-test --debug | directory "tests/e2e/logs" | export /tmp/e2e-logs
 ```

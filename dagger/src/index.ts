@@ -125,18 +125,18 @@ export class VscodeRunme {
   }
 
   /**
-   * Test the extension end-to-end.
+   * Integration tests the extension end-to-end.
    * @param debug - Whether to run the tests in debug mode.
-   * @param spec - The spec file to run.
+   * @param spec - The spec file to run, omit "tests/e2e".
    * @returns Returns the container running the tests.
    */
   @func()
-  async e2eTest(debug = false, spec?: string): Promise<Container> {
+  async integrationTest(debug = false, spec?: string): Promise<Container> {
     await this.base()
 
-    const e2eTestCommand = ['xvfb-run', 'npx wdio run ./tests/e2e/wdio.conf.ts']
+    const e2eTestCommand = ['xvfb-run', 'npx wdio run ./wdio.conf.ts']
     if (spec && spec.length > 0) {
-      e2eTestCommand.push(...['--spec ', spec])
+      e2eTestCommand.push(...['--spec', spec])
     }
 
     const expect = debug ? ReturnType.Any : ReturnType.Success
@@ -144,7 +144,8 @@ export class VscodeRunme {
     // Run e2e tests exclusively from bundle not source/dependencies
     return this.container
       .withExec('rm -rf node_modules'.split(' '))
-      .withExec('rm -rf package*.json'.split(' '))
+      .withWorkdir('tests/e2e')
+      .withExec('npm ci'.split(' '))
       .withExec(e2eTestCommand.join(' ').split(' '), { expect })
   }
 }
