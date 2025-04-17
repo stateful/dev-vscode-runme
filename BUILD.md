@@ -66,6 +66,6 @@ Extension | export $EXTENSION_VSIX
 . --source . | test --debug $(KernelBinary) | directory "tests/e2e/logs" | export /tmp/e2e-logs
 ```
 
-```sh {"background":"false","interactive":"true","interpreter":"dagger shell --progress=plain","terminalRows":"38"}
-. --source . | test $(KernelBinary)
+```sh
+. --source . | test $(KernelBinary) | stdout
 ```
