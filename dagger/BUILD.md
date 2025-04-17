@@ -70,14 +70,20 @@ First let's run the unit tests. They give us fast feedback.
 Extension | unit-test | stdout
 ```
 
-Then, let's run the end-to-end tests. These require a X server frame buffer which is provided by `xvfb-run` on "native" Linux. These take a good while to finish but mimic extension users closely.
+Then, let's run the end-to-end tests. These require a virtual X server frame buffer which is provided by `xvfb-run` on "native" Linux. These take a good while to finish but mimic extension users closely.
 
-```sh {"name":"E2ETests"}
-### Exported in runme.dev as E2ETests
-Extension | e2e-test | stdout
+```sh {"name":"IntegrationTests","terminalRows":"37"}
+### Exported in runme.dev as IntegrationTests
+Extension | integration-test | stdout
 ```
 
-If they fail, you can re-run them with the `--debug` flag and grab logs and screenshots inside of `tests/e2e/logs`.
+It's simple to just run a specific integration test spec with the following line.
+
+```sh
+Extension | integration-test --spec "specs/identity/identity.existent-cell.all.e2e.ts" | stdout
+```
+
+If they fail, you can re-run them with the `--debug` flag and grab logs and screenshots inside of `/tmp/e2e-logs`.
 
 ```sh {"terminalRows":"35"}
 Extension | e2e-test --debug | directory "tests/e2e/logs" | export /tmp/e2e-logs
