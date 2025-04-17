@@ -94,16 +94,16 @@ export class VscodeRunme {
    * Test the extension end-to-end.
    */
   @func()
-  async test(runmeBinary: Directory, debug = false): Promise<Container> {
-    const e2eTestCommand = [
-      'xvfb-run',
-      'npx wdio run ./tests/e2e/wdio.conf.ts',
-      // '--spec tests/e2e/specs/basic.e2e.ts',
-    ].join(' ')
+  async test(runmeBinary: Directory, debug = false, spec?: string): Promise<Container> {
+    const e2eTestCommand = ['xvfb-run', 'npx wdio run ./tests/e2e/wdio.conf.ts']
+
+    if (spec && spec.length > 0) {
+      e2eTestCommand.push(...['--spec ', spec])
+    }
 
     const build = await this.build(runmeBinary)
     const expect = debug ? ReturnType.Any : ReturnType.Success
 
-    return build.withExec(e2eTestCommand.split(' '), { expect })
+    return build.withExec(e2eTestCommand.join(' ').split(' '), { expect })
   }
 }
