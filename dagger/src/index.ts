@@ -92,7 +92,7 @@ export class VscodeRunme {
 
     this.container = this.container
       .withMountedDirectory('/mnt/vscode-runme/bin', runmeBinary)
-      .withExec('runme run setup build'.split(' '))
+      .withExec('runme run configureNPM setup build'.split(' '))
 
     return this
   }
