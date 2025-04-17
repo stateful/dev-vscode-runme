@@ -5,7 +5,17 @@
  */
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Platform, dag, Container, File, Directory, object, func, Secret } from '@dagger.io/dagger'
+import {
+  Platform,
+  dag,
+  Container,
+  File,
+  Directory,
+  object,
+  func,
+  Secret,
+  ReturnType,
+} from '@dagger.io/dagger'
 import * as os from 'os'
 @object()
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -24,7 +34,7 @@ export class VscodeRunme {
 
   constructor(source?: Directory) {
     if (!source) {
-      source = dag.git('https://github.com/runmedev/vscode-runme.git').tag("main").tree()
+      source = dag.git('https://github.com/runmedev/vscode-runme.git').tag('main').tree()
     }
     this.source = source
     this.presetup = source.file('dagger/scripts/presetup.sh')
@@ -40,11 +50,14 @@ export class VscodeRunme {
   container(): Container {
     const arch = os.arch() === 'x64' ? 'amd64' : 'arm64'
     const containerPlatform = `linux/${arch}` as Platform
-    const binary = dag.runmeKernel().releaseFiles(containerPlatform, { version: 'latest' }).file('runme')
+    const binary = dag
+      .runmeKernel()
+      .releaseFiles(containerPlatform, { version: 'latest' })
+      .file('runme')
 
     return dag
       .container({ platform: containerPlatform })
-      .from('node:20')
+      .from('ghcr.io/runmedev/runme-build-env:latest')
       .withEnvVariable('DAGGER_BUILD', '1')
       .withEnvVariable('EXTENSION_NAME', 'runme')
       .withFile('/usr/local/bin/runme', binary)
@@ -60,10 +73,37 @@ export class VscodeRunme {
    * @returns The packaged VSIX extension file.
    */
   @func()
-  async build(runmeBinary: Directory): Promise<File> {
+  async build(runmeBinary: Directory): Promise<Container> {
     return this.container()
       .withMountedDirectory('/mnt/vscode-runme/bin', runmeBinary)
-      .withExec('runme run setup build bundle'.split(' '))
-      .file('runme-extension.vsix')
+      .withExec('runme run setup build'.split(' '))
+  }
+
+  /**
+   * Bundles the VSIX extension file.
+   * @returns The packaged VSIX extension file.
+   */
+  @func()
+  async bundle(runmeBinary: Directory): Promise<File> {
+    const build = await this.build(runmeBinary)
+
+    return build.withExec('runme run bundle'.split(' ')).file('runme-extension.vsix')
+  }
+
+  /**
+   * Test the extension end-to-end.
+   */
+  @func()
+  async test(runmeBinary: Directory, debug = false): Promise<Container> {
+    const e2eTestCommand = [
+      'xvfb-run',
+      'npx wdio run ./tests/e2e/wdio.conf.ts',
+      // '--spec tests/e2e/specs/basic.e2e.ts',
+    ].join(' ')
+
+    const build = await this.build(runmeBinary)
+    const expect = debug ? ReturnType.Any : ReturnType.Success
+
+    return build.withExec(e2eTestCommand.split(' '), { expect })
   }
 }

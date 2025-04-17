@@ -59,3 +59,13 @@ echo "Exporting extension to $EXTENSION_VSIX"
 ### Exported in runme.dev as ExtensionVsix
 Extension | export $EXTENSION_VSIX
 ```
+
+## Testing
+
+```sh {"terminalRows":"35"}
+. --source . | test --debug $(KernelBinary) | directory "tests/e2e/logs" | export /tmp/e2e-logs
+```
+
+```sh {"background":"false","interactive":"true","interpreter":"dagger shell --progress=plain","terminalRows":"38"}
+. --source . | test $(KernelBinary)
+```

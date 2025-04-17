@@ -8,6 +8,10 @@
 !tests/**/*.tsx
 !tests/**/*.js
 !tests/**/*.jsx
+!dagger/**/*.ts
+!dagger/**/*.tsx
+!dagger/**/*.js
+!dagger/**/*.jsx
 
 out
 node_modules
