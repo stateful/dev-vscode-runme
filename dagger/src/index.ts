@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 /**
  * Build the Runme VS Code extension end-to-end.
  *
