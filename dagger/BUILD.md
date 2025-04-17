@@ -72,8 +72,8 @@ Extension | unit-test | stdout
 
 Then, let's run the end-to-end tests. These require a X server frame buffer which is provided by `xvfb-run` on "native" Linux. These take a good while to finish but mimic extension users closely.
 
-```sh {"name":"E2eTests"}
-### Exported in runme.dev as E2eTests
+```sh {"name":"E2ETests"}
+### Exported in runme.dev as E2ETests
 Extension | e2e-test | stdout
 ```
 
