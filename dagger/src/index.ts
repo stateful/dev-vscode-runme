@@ -13,10 +13,8 @@ import {
   Directory,
   object,
   func,
-  Secret,
   ReturnType,
 } from '@dagger.io/dagger'
-import * as os from 'os'
 @object()
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class VscodeRunme {
@@ -25,6 +23,12 @@ export class VscodeRunme {
    */
   @func()
   source?: Directory
+
+  /**
+   * The container to build the extension in.
+   */
+  @func()
+  container?: Container
 
   /**
    * The presetup script to be added to the container.
@@ -41,21 +45,31 @@ export class VscodeRunme {
   }
 
   /**
-   * Sets up the container for the VscodeRunme instance.
-   * @param binary - Optional kernel binary file to be added to the container.
-   * @param presetup - Optional presetup (for dependencies) file to be added to the container.
+   * Get the default platform for the container.
+   * @returns The default platform.
+   */
+  @func()
+  defaultPlatform(): Promise<Platform> {
+    return dag.defaultPlatform()
+  }
+
+  /**
+   * Sets up the base container
    * @returns The modified VscodeRunme instance.
    */
   @func()
-  container(): Container {
-    const arch = os.arch() === 'x64' ? 'amd64' : 'arm64'
-    const containerPlatform = `linux/${arch}` as Platform
+  async base(): Promise<VscodeRunme> {
+    if (this.container) {
+      return this
+    }
+
+    const containerPlatform = await this.defaultPlatform()
     const binary = dag
       .runmeKernel()
       .releaseFiles(containerPlatform, { version: 'latest' })
       .file('runme')
 
-    return dag
+    this.container = dag
       .container({ platform: containerPlatform })
       .from('ghcr.io/runmedev/runme-build-env:latest')
       .withEnvVariable('DAGGER_BUILD', '1')
@@ -66,44 +80,74 @@ export class VscodeRunme {
       .withMountedDirectory('/mnt/vscode-runme', this.source)
       .withWorkdir('/mnt/vscode-runme')
       .withExec('bash /usr/local/bin/presetup'.split(' '))
+
+    return this
   }
 
   /**
    * Builds the VSIX extension file.
-   * @returns The packaged VSIX extension file.
+   * @param runmeBinary - The runme binary to be added to the container.
+   * @returns The modified VscodeRunme instance.
    */
   @func()
-  async build(runmeBinary: Directory): Promise<Container> {
-    return this.container()
+  async build(runmeBinary: Directory): Promise<VscodeRunme> {
+    await this.base()
+
+    this.container = this.container
       .withMountedDirectory('/mnt/vscode-runme/bin', runmeBinary)
       .withExec('runme run setup build'.split(' '))
+
+    return this
   }
 
   /**
    * Bundles the VSIX extension file.
-   * @returns The packaged VSIX extension file.
+   * @returns The modified VscodeRunme instance.
    */
   @func()
-  async bundle(runmeBinary: Directory): Promise<File> {
-    const build = await this.build(runmeBinary)
+  async bundle(): Promise<File> {
+    await this.base()
 
-    return build.withExec('runme run bundle'.split(' ')).file('runme-extension.vsix')
+    return this.container.withExec('runme run bundle'.split(' ')).file('runme-extension.vsix')
+  }
+
+  /**
+   * Runs the unit tests.
+   * @param runmeBinary - The runme binary to be added to the container.
+   * @param debug - Whether to run the tests in debug mode.
+   * @param spec - The spec file to run.
+   * @returns Returns the container running the tests.
+   */
+  @func()
+  async unitTest(debug = false): Promise<Container> {
+    await this.base()
+
+    const expect = debug ? ReturnType.Any : ReturnType.Success
+
+    return this.container.withExec('runme run test:unit'.split(' '), { expect })
   }
 
   /**
    * Test the extension end-to-end.
+   * @param debug - Whether to run the tests in debug mode.
+   * @param spec - The spec file to run.
+   * @returns Returns the container running the tests.
    */
   @func()
-  async test(runmeBinary: Directory, debug = false, spec?: string): Promise<Container> {
-    const e2eTestCommand = ['xvfb-run', 'npx wdio run ./tests/e2e/wdio.conf.ts']
+  async e2eTest(debug = false, spec?: string): Promise<Container> {
+    await this.base()
 
+    const e2eTestCommand = ['xvfb-run', 'npx wdio run ./tests/e2e/wdio.conf.ts']
     if (spec && spec.length > 0) {
       e2eTestCommand.push(...['--spec ', spec])
     }
 
-    const build = await this.build(runmeBinary)
     const expect = debug ? ReturnType.Any : ReturnType.Success
 
-    return build.withExec(e2eTestCommand.join(' ').split(' '), { expect })
+    // Run e2e tests exclusively from bundle not source/dependencies
+    return this.container
+      .withExec('rm -rf node_modules'.split(' '))
+      .withExec('rm -rf package*.json'.split(' '))
+      .withExec(e2eTestCommand.join(' ').split(' '), { expect })
   }
 }

@@ -3,7 +3,7 @@ runme:
   id: 01JMMSSHXM7N70W4KCJ5XGEE2A
   version: v3
 shell: dagger shell
-terminalRows: 20
+terminalRows: 30
 ---
 
 # Build the Runme VS Code extension (via Dagger)
@@ -40,7 +40,7 @@ The previous command will list all the available platforms per version. Let's pi
 RunmeKernel | release-files --version latest $TARGET_PLATFORM
 ```
 
-## Build the Runme VS Code Extension
+## Build the Extension
 
 Let's tie together above's artifacts via their respective cell names to build the Runme VS Code extension.
 
@@ -57,15 +57,25 @@ echo "Exporting extension to $EXTENSION_VSIX"
 
 ```sh {"name":"ExtensionVsix"}
 ### Exported in runme.dev as ExtensionVsix
-Extension | export $EXTENSION_VSIX
+Extension | bundle | export $EXTENSION_VSIX
 ```
 
 ## Testing
 
-```sh {"terminalRows":"35"}
-. --source . | test --debug $(KernelBinary) | directory "tests/e2e/logs" | export /tmp/e2e-logs
-```
+First let's run the unit tests. They give us fast feedback.
 
 ```sh
-. --source . | test $(KernelBinary) | stdout
+Extension | unit-test | stdout
+```
+
+Then, let's run the end-to-end tests. These require a X server frame buffer which is provided by `xvfb-run` on "native" Linux. These take a good while to finish but mimic extension users closely.
+
+```sh
+Extension | e2e-test | stdout
+```
+
+If they fail, you can re-run them with the `--debug` flag and grab logs and screenshots inside of `tests/e2e/logs`.
+
+```sh {"terminalRows":"35"}
+Extension | e2e-test --debug | directory "tests/e2e/logs" | export /tmp/e2e-logs
 ```
