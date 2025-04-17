@@ -303,7 +303,7 @@ export const config: Options.Testrunner = {
     }
 
     console.log('Capturing screenshot for debugging')
-    const screenshotDir = path.join(__dirname, 'screenshots')
+    const screenshotDir = path.join(__dirname, 'logs', 'screenshots')
     await fs.mkdir(screenshotDir, { recursive: true })
     await browser.saveScreenshot(path.join(screenshotDir, `${test.parent} - ${test.title}.png`))
   },
