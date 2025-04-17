@@ -1,4 +1,5 @@
 ---
+cwd: ..
 runme:
   id: 01JMMSSHXM7N70W4KCJ5XGEE2A
   version: v3
@@ -64,13 +65,15 @@ Extension | bundle | export $EXTENSION_VSIX
 
 First let's run the unit tests. They give us fast feedback.
 
-```sh
+```sh {"name":"UnitTests"}
+### Exported in runme.dev as UnitTests
 Extension | unit-test | stdout
 ```
 
 Then, let's run the end-to-end tests. These require a X server frame buffer which is provided by `xvfb-run` on "native" Linux. These take a good while to finish but mimic extension users closely.
 
-```sh
+```sh {"name":"E2eTests"}
+### Exported in runme.dev as E2eTests
 Extension | e2e-test | stdout
 ```
 
