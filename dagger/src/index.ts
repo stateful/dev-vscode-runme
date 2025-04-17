@@ -4,7 +4,6 @@
  *
  */
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   Platform,
   dag,
@@ -16,7 +15,6 @@ import {
   ReturnType,
 } from '@dagger.io/dagger'
 @object()
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class VscodeRunme {
   /**
    * The source to build the extension from.
