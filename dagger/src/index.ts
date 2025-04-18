@@ -12,7 +12,9 @@ import {
   object,
   func,
   ReturnType,
+  Secret,
 } from '@dagger.io/dagger'
+
 @object()
 export class VscodeRunme {
   /**
@@ -69,8 +71,14 @@ export class VscodeRunme {
     this.container = dag
       .container({ platform: containerPlatform })
       .from('ghcr.io/runmedev/runme-build-env:latest')
+
+      // CI/CD-related config
+      .withEnvVariable('DO_NOT_TRACK', '1')
       .withEnvVariable('DAGGER_BUILD', '1')
+      .withEnvVariable('CI', '1')
+      .withEnvVariable('SHELL', 'bash')
       .withEnvVariable('EXTENSION_NAME', 'runme')
+
       .withFile('/usr/local/bin/runme', binary)
       .withFile('/usr/local/bin/presetup', this.presetup)
       .withEntrypoint([])
@@ -126,12 +134,13 @@ export class VscodeRunme {
 
   /**
    * Integration tests the extension end-to-end.
+   * @param runmeTestToken - The Runme test token to use for integration tests.
    * @param debug - Whether to run the tests in debug mode.
    * @param spec - The spec file to run, omit "tests/e2e".
    * @returns Returns the container running the tests.
    */
   @func()
-  async integrationTest(debug = false, spec?: string): Promise<Container> {
+  async integrationTest(runmeTestToken?: Secret, debug = false, spec?: string): Promise<Container> {
     await this.base()
 
     const e2eTestCommand = ['xvfb-run', 'npx wdio run ./wdio.conf.ts']
@@ -141,11 +150,46 @@ export class VscodeRunme {
 
     const expect = debug ? ReturnType.Any : ReturnType.Success
 
-    // Run e2e tests exclusively from bundle not source/dependencies
-    return this.container
-      .withExec('rm -rf node_modules'.split(' '))
-      .withWorkdir('tests/e2e')
-      .withExec('npm ci'.split(' '))
-      .withExec(e2eTestCommand.join(' ').split(' '), { expect })
+    let container = this.container
+    if (runmeTestToken) {
+      // GitHub Actions-integration e2e tests
+      container = container.withSecretVariable('RUNME_TEST_TOKEN', runmeTestToken)
+    }
+
+    return (
+      container
+        // Run e2e tests exclusively from bundle not source/dependencies
+        .withExec('rm -rf node_modules'.split(' '))
+        .withWorkdir('tests/e2e')
+        .withExec('npm ci'.split(' '))
+        .withExec(e2eTestCommand.join(' ').split(' '), { expect })
+    )
+  }
+
+  /**
+   * Sets the GitHub Actions job info.
+   * @param actor - The GitHub Actions actor.
+   * @param eventName - The GitHub Actions event name.
+   * @param forkOwner - The GitHub Actions fork owner.
+   * @param baseOwner - The GitHub Actions base owner.
+   * @returns The modified VscodeRunme instance.
+   */
+  @func()
+  async ghaJob(
+    actor: string,
+    baseOwner: string,
+    eventName: string,
+    forkOwner: string,
+  ): Promise<VscodeRunme> {
+    await this.base()
+
+    // GitHub Actions metadata only for internal PRs
+    this.container = this.container
+      .withEnvVariable('BASE_OWNER', baseOwner)
+      .withEnvVariable('FORK_OWNER', forkOwner)
+      .withEnvVariable('GITHUB_ACTOR', actor)
+      .withEnvVariable('GITHUB_EVENT_NAME', eventName)
+
+    return this
   }
 }

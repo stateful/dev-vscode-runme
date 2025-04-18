@@ -20,8 +20,7 @@ Initialize the VscodeRunme Dagger module using the local source code.
 
 The VS Code extension wraps the Runme kernel binary (platform-specific). Let's use the host's platform.
 
-```sh {"interpreter":"zsh","name":"Target","promptEnv":"never","terminalRows":"3"}
-### Exported in runme.dev as Target
+```sh {"interpreter":"zsh","promptEnv":"never","terminalRows":"3"}
 direnv allow
 echo "Building for $TARGET_PLATFORM"
 ```
@@ -52,7 +51,8 @@ VscodeRunme | build $(KernelBinary)
 
 Export the extension to a VSIX file.
 
-```sh {"interpreter":"bash","terminalRows":"3"}
+```sh {"interpreter":"bash","name":"print-target","terminalRows":"3"}
+### Exported in runme.dev as print-target
 echo "Exporting extension to $EXTENSION_VSIX"
 ```
 
@@ -65,7 +65,7 @@ Extension | bundle | export $EXTENSION_VSIX
 
 First let's run the unit tests. They give us fast feedback.
 
-```sh {"name":"UnitTests"}
+```sh {"interpreter":"dagger shell --progress=plain","name":"UnitTests"}
 ### Exported in runme.dev as UnitTests
 Extension | unit-test | stdout
 ```
@@ -74,17 +74,32 @@ Then, let's run the end-to-end tests. These require a virtual X server frame buf
 
 ```sh {"name":"IntegrationTests","terminalRows":"37"}
 ### Exported in runme.dev as IntegrationTests
-Extension | integration-test | stdout
+Extension | integration-test --runme-test-token RUNME_TEST_TOKEN | stdout
 ```
+
+Inside of GitHub Actions, we pass additional job information into the test suite.
+
+```sh {"interpreter":"dagger shell --progress=plain","name":"GhaIntegrationTests"}
+### Exported in runme.dev as GhaIntegrationTests
+Extension |
+  gha-job $BASE_OWNER $FORK_OWNER $GITHUB_ACTOR $GITHUB_EVENT_NAME |
+  integration-test --runme-test-token RUNME_TEST_TOKEN | stdout
+```
+
+### Troubleshooting
 
 It's simple to just run a specific integration test spec with the following line. Omit the "tests/e2e" directory.
 
 ```sh
-Extension | integration-test --spec "specs/identity/identity.existent-cell.all.e2e.ts" | stdout
+Extension |
+  integration-test --runme-test-token RUNME_TEST_TOKEN --spec "specs/githubAction.e2e.ts" |
+  stdout
 ```
 
 If they fail, you can re-run them with the `--debug` flag and grab logs and screenshots inside of `/tmp/e2e-logs`.
 
-```sh {"terminalRows":"35"}
-Extension | integration-test --debug | directory "tests/e2e/logs" | export /tmp/e2e-logs
+```sh
+Extension | integration-test --debug --runme-test-token RUNME_TEST_TOKEN --spec "specs/githubAction.e2e.ts" |
+  directory "tests/e2e/logs" |
+  export /tmp/e2e-logs
 ```

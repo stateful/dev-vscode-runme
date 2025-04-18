@@ -1,0 +1,65 @@
+name: Pipeline
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ">=1.24"
+      - name: Install xvfb
+        run: sudo apt-get update -y && sudo apt-get install xvfb
+      - name: Install direnv
+        run: curl -fsSL https://direnv.net/install.sh | bash
+      - name: Authorize direnv
+        run: direnv allow && direnv export bash
+      - name: Setup Dagger
+        uses: dagger/dagger-for-github@8.0.0
+        with:
+          version: "latest"
+          verb: core
+          args: "engine local-cache"
+      - name: Install Runme
+        uses: stateful/runme-action@v2
+        with:
+          workflows: print-target
+        env:
+          SHELL: /bin/bash
+      - name: 🧪 Run Unit + Integration Pipeline
+        run: runme run --direnv test:pipeline
+        env:
+          SHELL: /bin/bash
+          DAGGER_CLOUD_TOKEN: ${{ secrets.DAGGER_CLOUD_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUNME_TEST_TOKEN: ${{ secrets.RUNME_TEST_TOKEN }}
+          # gha job metadata
+          BASE_OWNER: ${{ github.repository_owner || 'unknown' }}
+          FORK_OWNER: ${{ github.event.pull_request.head.repo.owner.login || 'unknown' }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+      - name: 🔼 Upload Artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: logs
+          path: |
+            tests/e2e/logs
+      - name: 🐛 Debug Build
+        uses: stateful/vscode-server-action@v1
+        if: failure()
+        with:
+          timeout: "300000"
