@@ -8,7 +8,7 @@
     {
       "name": "RunmeKernel",
       "source": "github.com/runmedev/runme",
-      "pin": "280c226fe7bf495c0a5bb6e4d8ec2caea7d5ea51"
+      "pin": "5a2dcf9c13e769e6bda5b6973f2a81dde1192965"
     }
   ],
   "source": "dagger"

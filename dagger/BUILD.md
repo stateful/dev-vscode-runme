@@ -30,14 +30,14 @@ If the target platform is not set, reset your Runme session. It's likely that di
 The external Dagger module `runme` is linked inside `vscode-runme` dagger.json. This makes it available as `runme` in the current module's scope.
 
 ```sh {"terminalRows":"14"}
-RunmeKernel | release --version latest | entries
+RunmeKernel | list-release --version latest | entries
 ```
 
 The previous command will list all the available platforms per version. Let's pick the latest version matching the host's platform (i.e. `$TARGET_PLATFORM`).
 
-```sh {"id":"01JMMSSHXM7N70W4KCHTX92MHE","name":"KernelBinary","terminalRows":"27"}
+```sh {"id":"01JMMSSHXM7N70W4KCHTX92MHE","name":"KernelBinary","terminalRows":"12"}
 ### Exported in runme.dev as KernelBinary
-RunmeKernel | release-files --version latest $TARGET_PLATFORM
+RunmeKernel | link-release --version latest $TARGET_PLATFORM
 ```
 
 ## Build the Extension
