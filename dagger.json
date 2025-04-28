@@ -1,6 +1,6 @@
 {
   "name": "vscode-runme",
-  "engineVersion": "v0.18.4",
+  "engineVersion": "v0.18.5",
   "sdk": {
     "source": "typescript"
   },
@@ -8,7 +8,7 @@
     {
       "name": "RunmeKernel",
       "source": "github.com/runmedev/runme",
-      "pin": "3c2f746c36da5f18fb28a4169033f7712c6f4323"
+      "pin": "cd7e853c75a5f5bb7fbb3b36942a3bd14951355f"
     }
   ],
   "source": "dagger"
