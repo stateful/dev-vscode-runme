@@ -12,6 +12,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
     strategy:
       matrix:
         os: [ubuntu-latest]
