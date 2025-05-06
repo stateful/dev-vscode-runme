@@ -52,7 +52,6 @@ VscodeRunme | build $(KernelBinary)
 Export the extension to a VSIX file.
 
 ```sh {"interpreter":"bash","name":"print-target","terminalRows":"3"}
-### Exported in runme.dev as print-target
 echo "Exporting extension to $EXTENSION_VSIX"
 ```
 
@@ -82,7 +81,7 @@ Inside of GitHub Actions, we pass additional job information into the test suite
 ```sh {"interpreter":"dagger shell --progress=plain","name":"GhaIntegrationTests"}
 ### Exported in runme.dev as GhaIntegrationTests
 Extension |
-  gha-job $BASE_OWNER $FORK_OWNER $GITHUB_ACTOR $GITHUB_EVENT_NAME |
+  gha-job $GITHUB_ACTOR $BASE_OWNER $GITHUB_EVENT_NAME $FORK_OWNER |
   integration-test --runme-test-token RUNME_TEST_TOKEN | stdout
 ```
 

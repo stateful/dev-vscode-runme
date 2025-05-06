@@ -169,9 +169,9 @@ export class VscodeRunme {
   /**
    * Sets the GitHub Actions job info.
    * @param actor - The GitHub Actions actor.
+   * @param baseOwner - The GitHub Actions base owner.
    * @param eventName - The GitHub Actions event name.
    * @param forkOwner - The GitHub Actions fork owner.
-   * @param baseOwner - The GitHub Actions base owner.
    * @returns The modified VscodeRunme instance.
    */
   @func()
