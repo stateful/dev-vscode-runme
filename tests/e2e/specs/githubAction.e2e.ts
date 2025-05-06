@@ -19,7 +19,8 @@ describe('Runme GitHub Workflow Integration', async () => {
   if (
     (!token && !process.env.CI) ||
     process.env.NODE_ENV === 'production' ||
-    actor === 'dependabot[bot]'
+    actor === 'dependabot[bot]' ||
+    actor === 'dependabot-preview[bot]'
   ) {
     return
   }
