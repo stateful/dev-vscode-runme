@@ -1,4 +1,3 @@
-import cp from 'node:child_process'
 import path from 'node:path'
 
 import {
@@ -9,22 +8,15 @@ import {
   TaskRevealKind,
   TaskPanelKind,
   ShellExecution,
-  NotebookCellExecution,
 } from 'vscode'
 
 import getLogger from '../logger'
 import { getAnnotations, getTerminalRunmeId } from '../utils'
 import { PLATFORM_OS, ENV_STORE } from '../constants'
-import { DEFAULT_PROMPT_ENV } from '../../constants'
 import { getCloseTerminalOnSuccess } from '../../utils/configuration'
 import { ResolveProgramRequest_ModeEnum } from '../grpc/runner/types'
 
-import {
-  getCmdShellSeq,
-  getCommandExportExtractMatches,
-  populateEnvVar,
-  promptUserForVariable,
-} from './utils'
+import { getCmdShellSeq, retrieveShellCommand } from './utils'
 import { sh as inlineSh } from './shell'
 
 import { IKernelExecutor } from '.'
@@ -172,87 +164,6 @@ export const taskExecutor: IKernelExecutor = async (executor) => {
   })
 
   return !Boolean(await p)
-}
-
-/**
- * Helper method to parse the shell code and runs the following operations:
- *   - fetches environment variable exports and puts them into ENV_STORE
- *   - runs embedded shell scripts for exports, e.g. `exports=$(echo "foobar")`
- *
- * @param exec NotebookCellExecution
- * @returns cell text if all operation to retrieve the cell text could be executed, undefined otherwise
- */
-export async function retrieveShellCommand(
-  exec: NotebookCellExecution,
-  promptForEnv = DEFAULT_PROMPT_ENV,
-) {
-  let cellText = exec.cell.document.getText()
-  const cwd = path.dirname(exec.cell.document.uri.fsPath)
-  const rawText = exec.cell.document.getText()
-
-  const exportMatches = getCommandExportExtractMatches(rawText, true, promptForEnv)
-
-  const stateEnv = Object.fromEntries(ENV_STORE)
-
-  for (const { hasStringValue, key, match, type, value } of exportMatches) {
-    if (type === 'exec') {
-      /**
-       * evaluate expression
-       */
-      const expressionProcess = cp.spawn(value, {
-        cwd,
-        env: { ...process.env, ...stateEnv },
-        shell: true,
-      })
-      const [isError, data] = await new Promise<[number, string]>((resolve) => {
-        let data = ''
-        expressionProcess.stdout.on('data', (payload) => {
-          data += payload.toString()
-        })
-        expressionProcess.stderr.on('data', (payload) => {
-          data += payload.toString()
-        })
-        expressionProcess.on('close', (code) => {
-          data = data.trim()
-          if (code && code > 0) {
-            return resolve([code, data])
-          }
-
-          return resolve([0, data])
-        })
-      })
-
-      if (isError) {
-        window.showErrorMessage(`Failed to evaluate expression "${value}": ${data}`)
-        return undefined
-      }
-
-      stateEnv[key] = data
-    } else if (type === 'prompt') {
-      /**
-       * ask user for value only if placeholder has no new line as this would be absorbed by
-       * VS Code, see https://github.com/microsoft/vscode/issues/98098
-       */
-      stateEnv[key] = populateEnvVar(
-        (await promptUserForVariable(key, value, hasStringValue, false)) ?? '',
-        { ...process.env, ...stateEnv },
-      )
-    } else {
-      stateEnv[key] = populateEnvVar(value)
-    }
-
-    /**
-     * we don't want to run these exports anymore as we already stored
-     * them in our extension state
-     */
-    cellText = cellText.replace(match, '')
-
-    /**
-     * persist env variable in memory
-     */
-    ENV_STORE.set(key, stateEnv[key])
-  }
-  return cellText
 }
 
 export const sh = taskExecutor

@@ -4,7 +4,7 @@ import { window } from 'vscode'
 import { expect, vi, test, beforeEach } from 'vitest'
 
 import { ENV_STORE } from '../../../src/extension/constants'
-import { retrieveShellCommand } from '../../../src/extension/executors/task'
+import { retrieveShellCommand } from '../../../src/extension/executors/utils'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
