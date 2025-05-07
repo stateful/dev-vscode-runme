@@ -99,6 +99,6 @@ If they fail, you can re-run them with the `--debug` flag and grab logs and scre
 
 ```sh
 Extension | integration-test --debug --runme-test-token RUNME_TEST_TOKEN --spec "specs/githubAction.e2e.ts" |
-  directory "tests/e2e/logs" |
+  directory "logs" |
   export /tmp/e2e-logs
 ```
