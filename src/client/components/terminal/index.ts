@@ -476,12 +476,6 @@ export class TerminalView extends LitElement {
 
     const ctx = getContext()
 
-    const dims = new Observable<TerminalDimensions | undefined>((observer) =>
-      window.addEventListener('resize', () => observer.next(this.#getWindowDimensions())),
-    ).pipe(share())
-    this.#subscribeResizeTerminal(dims)
-    this.#subscribeSetTerminalRows(dims)
-
     this.disposables.push(
       onClientMessage(ctx, async (e) => {
         if (!LISTEN_TO_EVENTS.some((event) => e.type.startsWith(event))) {
@@ -641,7 +635,14 @@ export class TerminalView extends LitElement {
     this.#resizeTerminal()
     this.#updateTerminalTheme()
 
-    terminalContainer.appendChild(this.#createResizeHandle())
+    const resizeDragHandle = this.#createResizeHandle()
+    const dims = new Observable<TerminalDimensions | undefined>((observer) => {
+      window.addEventListener('resize', () => observer.next(this.#getDimensions(true)))
+      terminalContainer.addEventListener('mouseup', () => observer.next(this.#getDimensions(false)))
+    }).pipe(share())
+    this.#subscribeResizeTerminal(dims)
+    this.#subscribeSetTerminalRows(dims)
+    terminalContainer.appendChild(resizeDragHandle)
 
     const ctx = getContext()
     ctx.postMessage &&
@@ -748,15 +749,16 @@ export class TerminalView extends LitElement {
     return getComputedStyle(terminalContainer!).getPropertyValue(variableName) ?? undefined
   }
 
-  #getWindowDimensions(): TerminalDimensions | undefined {
+  #getDimensions(checkWindowSize: boolean): TerminalDimensions | undefined {
     if (!this.fitAddon) {
       return
     }
 
     const { innerWidth, innerHeight } = window
 
-    // Prevent adjusting the terminal size if width & height remain the same
+    // Prevent adjusting the terminal size if window width & height remain the same
     if (
+      checkWindowSize &&
       Math.abs(this.windowSize.width - innerWidth) <= Number.EPSILON &&
       Math.abs(this.windowSize.height - innerHeight) <= Number.EPSILON
     ) {
