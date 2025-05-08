@@ -117,7 +117,7 @@ export class VscodeRunme {
     await this.base()
 
     this.extension = await this.unpackExtension(extensionVsix)
-    this.container = this.container.withExec('runme run configureNPM setup build'.split(' '))
+    this.container = this.container.withExec('runme run configureNPM setup'.split(' '))
 
     return this
   }
@@ -244,35 +244,6 @@ export class VscodeRunme {
   }
 
   /**
-   * Fetches a GitHub release by version or tag.
-   * @param githubToken - Optional GitHub token for authentication
-   * @param version - The version to fetch ('latest' or a specific tag)
-   * @returns The GitHub release data
-   */
-  private async getReleaseByVersion(githubToken?: Secret, version: string = 'latest') {
-    const octokit = new Octokit({
-      auth: githubToken ? await githubToken.plaintext() : undefined,
-    })
-
-    const repoParams = {
-      owner: 'runmedev',
-      repo: 'vscode-runme',
-    }
-
-    if (version === 'latest') {
-      const { data } = await octokit.rest.repos.getLatestRelease(repoParams)
-      return data
-    }
-
-    const { data } = await octokit.rest.repos.getReleaseByTag({
-      ...repoParams,
-      tag: version,
-    })
-
-    return data
-  }
-
-  /**
    * Fetches a Runme release from GitHub and returns a directory with the uncompressed release files.
    * @param platform Target OS/arch in the format 'os/arch', e.g. 'linux/amd64'
    * @param githubToken Optional GitHub token for authentication
@@ -284,7 +255,7 @@ export class VscodeRunme {
     githubToken?: Secret,
     version: string = 'latest',
   ): Promise<File> {
-    if (version === 'latest') {
+    if (version === 'latest' || version === 'prerelease') {
       const release = await this.getReleaseByVersion(githubToken, version)
       version = release.name
     }
@@ -314,5 +285,40 @@ export class VscodeRunme {
       .withExec(['unzip', 'runme-extension.vsix.zip'])
 
     return container.directory('/tmp/extension')
+  }
+
+  /**
+   * Fetches a GitHub release by version or tag.
+   * @param githubToken - Optional GitHub token for authentication
+   * @param version - The version to fetch ('latest' or a specific tag)
+   * @returns The GitHub release data
+   */
+  private async getReleaseByVersion(githubToken?: Secret, version: string = 'latest') {
+    const octokit = new Octokit({
+      auth: githubToken ? await githubToken.plaintext() : undefined,
+    })
+
+    const repoParams = {
+      owner: 'runmedev',
+      repo: 'vscode-runme',
+    }
+
+    if (version === 'latest') {
+      const { data } = await octokit.rest.repos.getLatestRelease(repoParams)
+      return data
+    }
+
+    if (version === 'prerelease') {
+      const { data } = await octokit.rest.repos.listReleases(repoParams)
+      const prereleases = data.filter((release) => release.prerelease)
+      return prereleases[0] // Returns the most recent prerelease
+    }
+
+    const { data } = await octokit.rest.repos.getReleaseByTag({
+      ...repoParams,
+      tag: version,
+    })
+
+    return data
   }
 }
