@@ -14,6 +14,7 @@ import {
   ReturnType,
   Secret,
 } from '@dagger.io/dagger'
+import { Octokit } from 'octokit'
 
 @object()
 export class VscodeRunme {
@@ -191,5 +192,72 @@ export class VscodeRunme {
       .withEnvVariable('GITHUB_EVENT_NAME', eventName)
 
     return this
+  }
+
+  /**
+   * Fetches a Runme release from GitHub and returns a directory with the release assets.
+   * @param githubToken Optional GitHub token for authentication
+   * @param version Release version to fetch, defaults to 'latest'
+   */
+  @func()
+  async listRelease(githubToken?: string, version: string = 'latest'): Promise<Directory> {
+    const octokit = new Octokit({
+      auth: githubToken || undefined,
+    })
+    let release
+    if (version === 'latest') {
+      const { data } = await octokit.rest.repos.getLatestRelease({
+        owner: 'runmedev',
+        repo: 'vscode-runme',
+      })
+      release = data
+    } else {
+      const { data } = await octokit.rest.repos.getReleaseByTag({
+        owner: 'runmedev',
+        repo: 'vscode-runme',
+        tag: version,
+      })
+      release = data
+    }
+    if (!release) {
+      throw new Error('Failed to get release')
+    }
+    // Simulate a directory structure in memory (or use a temp dir if needed)
+    // Here, we use a Dagger Directory abstraction
+    let ctr = await this.base()
+    const releaseDir = `/releases/${version}`
+    for (const asset of release.assets) {
+      if (!asset.name.endsWith('.vsix')) continue
+      ctr.container = ctr.container.withFile(
+        `${releaseDir}/${asset.name}`,
+        dag.http(asset.browser_download_url),
+      )
+    }
+    return ctr.container.directory(releaseDir)
+  }
+
+  /**
+   * Fetches a Runme release from GitHub and returns a directory with the uncompressed release files.
+   * @param platform Target OS/arch in the format 'os/arch', e.g. 'linux/amd64'
+   * @param githubToken Optional GitHub token for authentication
+   * @param version Release version to fetch, defaults to 'latest'
+   */
+  @func()
+  async linkRelease(
+    platform: string,
+    githubToken?: string,
+    version: string = 'latest',
+  ): Promise<File> {
+    const [os, arch] = platform.split('/')
+    const archMap: Record<string, string> = {
+      amd64: 'x86_64',
+      arm64: 'arm64',
+      wasm: 'wasm',
+    }
+    const archName = archMap[arch] || arch
+    const filename = `runme-${os}-${archName}-${version}.vsix`
+    const releaseDir = await this.listRelease(githubToken, version)
+
+    return releaseDir.file(filename)
   }
 }

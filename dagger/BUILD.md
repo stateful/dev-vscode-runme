@@ -102,3 +102,13 @@ Extension | integration-test --debug --runme-test-token RUNME_TEST_TOKEN --spec 
   directory "logs" |
   export /tmp/e2e-logs
 ```
+
+### Releases
+
+```sh {"terminalRows":"14"}
+. | list-release | entries
+```
+
+```sh {"terminalRows":"10"}
+. | link-release --version 3.13.3-edge.0 $TARGET_PLATFORM | name
+```
