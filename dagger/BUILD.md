@@ -109,6 +109,14 @@ Extension | integration-test --debug --runme-test-token RUNME_TEST_TOKEN --spec 
 . | list-release | entries
 ```
 
-```sh {"terminalRows":"10"}
-. | link-release --version 3.13.3-edge.0 $TARGET_PLATFORM | name
+```sh {"name":"ReleaseVsix","terminalRows":"12"}
+### Exported in runme.dev as ReleaseVsix
+# . | link-release --version 3.13.3-edge.0 $TARGET_PLATFORM
+. | link-release --version latest $TARGET_PLATFORM
+```
+
+```sh
+VscodeRunme | prebuild $(ReleaseVsix) |
+  integration-test --spec "specs/bare.e2e.ts" |
+  stdout
 ```
