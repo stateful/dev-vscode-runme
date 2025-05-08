@@ -117,6 +117,6 @@ Extension | integration-test --debug --runme-test-token RUNME_TEST_TOKEN --spec 
 ```sh {"name":"PreReleaseIntegrationTests"}
 ### Exported in runme.dev as PreReleaseIntegrationTests
 VscodeRunme | prebuild $(PreReleaseVsix) |
-   --runme-test-token RUNME_TEST_TOKEN
+  integration-test --runme-test-token RUNME_TEST_TOKEN |
   stdout
 ```
