@@ -8,6 +8,7 @@ import type { Options } from '@wdio/types'
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const workspacePath = path.join(__dirname, '..', '..')
 const extensionPath = process.env.RUNME_TEST_EXTENSION || workspacePath
+const specFileRetries = Number(process.env.RUNME_TEST_SPEC_RETRIES) ?? 1
 
 export const config: Options.Testrunner = {
   //
@@ -164,7 +165,7 @@ export const config: Options.Testrunner = {
   framework: 'mocha',
   //
   // The number of times to retry the entire specfile when it fails as a whole
-  specFileRetries: 5,
+  specFileRetries,
   //
   // Delay in seconds between the spec file retry attempts
   // specFileRetriesDelay: 0,

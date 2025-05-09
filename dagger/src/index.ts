@@ -196,6 +196,7 @@ export class VscodeRunme {
    * @param baseOwner - The GitHub Actions base owner.
    * @param eventName - The GitHub Actions event name.
    * @param forkOwner - The GitHub Actions fork owner.
+   * @param specRetries - The number of retries for the spec.
    * @returns The modified VscodeRunme instance.
    */
   @func()
@@ -204,6 +205,7 @@ export class VscodeRunme {
     baseOwner: string,
     eventName: string,
     forkOwner: string,
+    specRetries: number = 5,
   ): Promise<VscodeRunme> {
     await this.base()
 
@@ -213,6 +215,8 @@ export class VscodeRunme {
       .withEnvVariable('FORK_OWNER', forkOwner)
       .withEnvVariable('GITHUB_ACTOR', actor)
       .withEnvVariable('GITHUB_EVENT_NAME', eventName)
+      // retry more aggressively in GHA
+      .withEnvVariable('RUNME_TEST_SPEC_RETRIES', specRetries.toString())
 
     return this
   }
