@@ -11,6 +11,7 @@ concurrency:
 
 env:
   DO_NOT_TRACK: 1
+  SHELL: /bin/bash
 
 jobs:
   build:
