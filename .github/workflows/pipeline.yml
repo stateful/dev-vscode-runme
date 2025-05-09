@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  SHELL: /bin/bash
+  DO_NOT_TRACK: 1
 
 jobs:
   build:

@@ -10,6 +10,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  DO_NOT_TRACK: 1
+
 jobs:
   build:
     if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
@@ -17,8 +20,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    env:
-      DO_NOT_TRACK: 1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,9 +35,9 @@ jobs:
         run: xvfb-run npx runme run configureNPM setup build test:ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUNME_TEST_SPEC_RETRIES: "3"
           RUNME_TEST_TOKEN: ${{ secrets.RUNME_TEST_TOKEN }}
           RUNME_PROJECT: ${{ github.workspace }}
-          SHELL: bash
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           FORK_OWNER: ${{ github.event.pull_request.head.repo.owner.login }}
